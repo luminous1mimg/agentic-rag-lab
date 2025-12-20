@@ -13,14 +13,14 @@ def main() -> int:
 
     parser.add_argument(
         "--provider",
-        choices=["auto", "mock", "openai"],
+        choices=["auto", "mock", "openai", "gemini"],
         default="auto",
-        help="LLM provider. auto = openai if OPENAI_API_KEY exists else mock",
+        help="LLM provider. auto = openai if OPENAI_API_KEY, else gemini if GEMINI_API_KEY, else mock",
     )
     parser.add_argument(
         "--model",
-        default=os.getenv("OPENAI_MODEL", "gpt-5-mini"),
-        help="Model name (used when provider is openai/auto-openai)",
+        default=os.getenv("OPENAI_MODEL", os.getenv("GEMINI_MODEL", "gpt-5-mini")),
+        help="Model name (used when provider is openai/gemini/auto)",
     )
     parser.add_argument("--show-meta", action="store_true", help="Print provider/model info")
 

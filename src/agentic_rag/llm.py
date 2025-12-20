@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import Literal, Optional
 
 
-ProviderName = Literal["auto", "mock", "openai"]
+ProviderName = Literal["auto", "mock", "openai", "gemini"]
 
 
 class LLMError(RuntimeError):
@@ -78,24 +78,72 @@ class OpenAIResponsesLLM(BaseLLM):
         return text if isinstance(text, str) and text.strip() else str(resp)
 
 
+class GeminiLLM(BaseLLM):
+    """
+    Gemini provider using the Google GenAI SDK.
+    """
+
+    def __init__(self, model: str, api_key: Optional[str] = None):
+        try:
+            from google import genai  # type: ignore
+        except Exception as e:
+            raise LLMError(
+                "Gemini SDK not installed. Install with: pip install -e \".[dev,gemini]\""
+            ) from e
+
+        self._genai = genai
+        self._model = model
+        self._api_key = api_key
+
+        if not self._api_key:
+            raise LLMError("GEMINI_API_KEY not set.")
+
+        self._client = self._genai.Client(api_key=self._api_key)
+
+    def generate(self, prompt: str) -> str:
+        try:
+            resp = self._client.models.generate_content(model=self._model, contents=prompt)
+        except Exception as e:
+            raise LLMError(f"Gemini call failed: {e}") from e
+
+        text = getattr(resp, "text", None)
+        return text if isinstance(text, str) and text.strip() else str(resp)
+
+
 def build_llm(cfg: LLMConfig) -> BaseLLM:
     """
     provider=auto:
       - If OPENAI_API_KEY is set, try OpenAI provider
       - Else fallback to Mock
     """
-    api_key = os.getenv(cfg.api_key_env)
+    openai_api_key = os.getenv(cfg.api_key_env)
+    gemini_api_key = os.getenv("GEMINI_API_KEY")
 
     if cfg.provider == "mock":
         return MockLLM()
 
     if cfg.provider == "openai":
-        return OpenAIResponsesLLM(model=cfg.model, api_key=api_key)
+        return OpenAIResponsesLLM(model=cfg.model, api_key=openai_api_key)
+
+    if cfg.provider == "gemini":
+        model = cfg.model
+        if model == "gpt-5-mini" and not os.getenv("GEMINI_MODEL"):
+            model = "gemini-2.0-flash"
+        return GeminiLLM(model=model, api_key=gemini_api_key)
 
     # auto
-    if api_key:
+    if openai_api_key:
         try:
-            return OpenAIResponsesLLM(model=cfg.model, api_key=api_key)
+            return OpenAIResponsesLLM(model=cfg.model, api_key=openai_api_key)
+        except LLMError:
+            return MockLLM()
+
+    if gemini_api_key:
+        try:
+            model = cfg.model
+            if model == "gpt-5-mini" and not os.getenv("GEMINI_MODEL"):
+                model = "gemini-2.0-flash"
+            return GeminiLLM(model=model, api_key=gemini_api_key)
         except LLMError:
             return MockLLM()
 
