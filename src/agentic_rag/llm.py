@@ -128,7 +128,7 @@ def build_llm(cfg: LLMConfig) -> BaseLLM:
     if cfg.provider == "gemini":
         model = cfg.model
         if model == "gpt-5-mini" and not os.getenv("GEMINI_MODEL"):
-            model = "gemini-2.0-flash"
+            model = "gemini-3-flash-preview"
         return GeminiLLM(model=model, api_key=gemini_api_key)
 
     # auto
@@ -142,9 +142,9 @@ def build_llm(cfg: LLMConfig) -> BaseLLM:
         try:
             model = cfg.model
             if model == "gpt-5-mini" and not os.getenv("GEMINI_MODEL"):
-                model = "gemini-2.0-flash"
+                model = "gemini-3-flash-preview"
             return GeminiLLM(model=model, api_key=gemini_api_key)
         except LLMError:
             return MockLLM()
-
+    
     return MockLLM()

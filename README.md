@@ -19,3 +19,9 @@ export GEMINI_API_KEY="your_api_key"
 export GEMINI_MODEL="gemini-2.0-flash"  # optional
 python -m agentic_rag.main --provider gemini "hello"
 ```
+
+## Demo
+
+### Chat (LLM only)
+```bash
+python -m agentic_rag.main "hi" --mode chat --provider gemini
