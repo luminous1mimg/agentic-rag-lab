@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+import re
 from typing import List
 
 from .indexer import ensure_index
@@ -34,6 +35,33 @@ def build_rag_prompt(question: str, chunks: List[RetrievedChunk]) -> str:
     )
 
 
+def _has_cjk(text: str) -> bool:
+    return re.search(r"[\u4e00-\u9fff]", text) is not None
+
+
+def _index_has_cjk_tokens(index: "LexicalIndex") -> bool:
+    return any(_has_cjk(t) for t in index.vocab)
+
+
+def _maybe_translate_query(question: str, llm: BaseLLM, index: "LexicalIndex") -> str:
+    question_has_cjk = _has_cjk(question)
+    index_has_cjk = _index_has_cjk_tokens(index)
+
+    if question_has_cjk and not index_has_cjk:
+        target_lang = "English"
+    elif (not question_has_cjk) and index_has_cjk:
+        target_lang = "中文"
+    else:
+        return ""
+
+    prompt = (
+        f"Translate the following query to {target_lang} for document retrieval. "
+        "Return only the translated query.\n"
+        f"Query: {question}"
+    )
+    return llm.generate(prompt).strip()
+
+
 def run_rag(
     question: str,
     llm: BaseLLM,
@@ -45,6 +73,10 @@ def run_rag(
 ) -> RagResult:
     index = ensure_index(kb_dir=kb_dir, index_dir=index_dir, reindex=reindex)
     chunks = retrieve(question, index, top_k=top_k)
+    if not chunks:
+        translated = _maybe_translate_query(question, llm, index)
+        if translated:
+            chunks = retrieve(translated, index, top_k=top_k)
 
     if not chunks:
         return RagResult(
