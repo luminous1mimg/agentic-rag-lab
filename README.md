@@ -36,6 +36,8 @@ python -m agentic_rag.main "What is this project?" --mode rag --kb examples/kb -
 
 python -m agentic_rag.main "这个项目有哪些模块？" --mode rag --kb examples/kb --reindex --provider gemini
 
+python -m agentic_rag.main "这个项目有哪些模块？" --mode graph --kb examples/kb --provider gemini --thread-id demo1 --reset-thread --show-history
+
 # subsequent runs can omit --reindex
 python -m agentic_rag.main "如何扩展知识库？" --mode rag --kb examples/kb --provider gemini
 ```
