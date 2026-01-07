@@ -1,0 +1,6 @@
+{"id":"project_desc","question":"一句话概括这个项目是什么？","expected_sources":["intro.md"],"must_include":["Agentic RAG"]}
+{"id":"modules_list","question":"这个项目有哪些模块？请列出关键文件名。","expected_sources":["intro.md"],"must_include":["llm.py","agent.py","retriever.py"]}
+{"id":"run_tests","question":"怎么运行测试？给出具体命令。","expected_sources":["dev.md"],"must_include":["pytest"]}
+{"id":"run_cli","question":"怎么运行 CLI？给出具体命令示例。","expected_sources":["dev.md"],"must_include":["python -m agentic_rag.main"]}
+{"id":"providers","question":"项目支持哪些 LLM provider？","expected_sources":["intro.md"],"must_include":["llm.py"]}
+{"id":"rag_mode","question":"如何用 rag 模式跑一条问题并输出 sources？","expected_sources":["dev.md","intro.md"],"must_include":["--mode rag","Sources"]}

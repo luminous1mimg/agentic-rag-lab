@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import time
 from dataclasses import dataclass
 from typing import Literal, Optional
 
@@ -104,7 +105,17 @@ class GeminiLLM(BaseLLM):
         try:
             resp = self._client.models.generate_content(model=self._model, contents=prompt)
         except Exception as e:
-            raise LLMError(f"Gemini call failed: {e}") from e
+            message = str(e)
+            if "RESOURCE_EXHAUSTED" in message:
+                time.sleep(61)
+                try:
+                    resp = self._client.models.generate_content(
+                        model=self._model, contents=prompt
+                    )
+                except Exception as retry_e:
+                    raise LLMError(f"Gemini call failed: {retry_e}") from retry_e
+            else:
+                raise LLMError(f"Gemini call failed: {e}") from e
 
         text = getattr(resp, "text", None)
         return text if isinstance(text, str) and text.strip() else str(resp)
