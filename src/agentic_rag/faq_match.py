@@ -89,7 +89,7 @@ def load_faq(tsv: Path = DEFAULT_TSV) -> List[FaqEntry]:
 def match_faq(
     query: str,
     tsv: Path = DEFAULT_TSV,
-    threshold: float = 0.6,
+    threshold: float = 0.7,
 ) -> Optional[FaqMatch]:
     """Return the best deterministic FAQ match, or ``None``.
 
@@ -124,7 +124,7 @@ def match_faq(
 
 def text_match(
     query: str,
-    threshold: float = 0.6,
+    threshold: float = 0.7,
     tsv: Path = DEFAULT_TSV,
 ) -> Tuple[Optional[str], str]:
     """Backward-compatible wrapper for the original ``match.py`` API.

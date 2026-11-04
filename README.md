@@ -43,7 +43,7 @@ python -m agentic_rag.main "如何扩展知识库？" --mode rag --kb examples/k
 ```
 
 ## CLI Options
-- `--mode`: `chat` or `rag` (default: `chat`)
+- `--mode`: `chat`, `rag`, `graph` or `faq` (default: `chat`)
 - `--provider`: `auto|mock|openai|gemini` (default: `auto`)
 - `--model`: model name for OpenAI/Gemini (default: `gpt-5-mini`)
 - `--kb`: knowledge base directory (default: `examples/kb`)
@@ -51,6 +51,9 @@ python -m agentic_rag.main "如何扩展知识库？" --mode rag --kb examples/k
 - `--reindex`: force rebuild index
 - `--top-k`: number of chunks to retrieve (default: `5`)
 - `--show-meta`: print provider/model metadata
+- `--faq-tsv`: FAQ TSV file for `--mode faq` (default: package `faq_data/faq.tsv`)
+- `--faq-threshold`: difflib cutoff for `--mode faq` (default: `0.7`)
+- `--max-tries`: max rewrite loops in `graph` mode (default: `2`)
 
 ## Providers
 - `auto`: OpenAI if `OPENAI_API_KEY` set; else Gemini if `GEMINI_API_KEY` set; else `mock`
