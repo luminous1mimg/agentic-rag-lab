@@ -63,3 +63,19 @@ python -m agentic_rag.main "如何扩展知识库？" --mode rag --kb examples/k
 - KB files: `.md` / `.txt`, loaded recursively from `--kb`
 - Index is stored under `--index-dir`; re-run with `--reindex` after KB changes
 - If query language mismatches KB language, the query is translated and retried automatically
+
+## Industrial FAQ (merged from IndustrialFAQ-RAG)
+
+50 OpenFOAM FAQ entries, merged as a deterministic first pass plus a
+Markdown KB for general RAG:
+
+```bash
+# Deterministic match first; falls back to RAG when there is no hit
+python -m agentic_rag.main "怎么生成网格" --mode faq
+
+# General RAG over the same OpenFOAM KB
+python -m agentic_rag.main "怎么生成网格" --mode rag --kb examples/kb/openfoam --reindex
+```
+
+Details: `docs/industrial-faq-merge.md`, matcher: `src/agentic_rag/faq_match.py`,
+data: `src/agentic_rag/faq_data/faq.tsv`, KB: `examples/kb/openfoam/faq.md`.
