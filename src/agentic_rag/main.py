@@ -26,7 +26,9 @@ def main() -> int:
     parser.add_argument("--show-meta", action="store_true", help="Print provider/model info")
 
     # Step2: RAG args
-    parser.add_argument("--mode", choices=["chat", "rag", "graph"], default="chat")
+    parser.add_argument("--mode", choices=["chat", "rag", "graph", "faq"], default="chat")
+    parser.add_argument("--faq-tsv", default=None, help="FAQ TSV file for --mode faq (default: package faq_data/faq.tsv)")
+    parser.add_argument("--faq-threshold", type=float, default=0.6, help="difflib cutoff for --mode faq")
     parser.add_argument("--kb", default="examples/kb")
     parser.add_argument("--index-dir", default="data/index_lexical")
     parser.add_argument("--reindex", action="store_true")
@@ -41,6 +43,42 @@ def main() -> int:
     if not args.question.strip():
         print('Usage: python -m agentic_rag.main "your question"')
         return 2
+
+    # ---- FAQ branch: deterministic match first, no LLM needed on a hit ----
+    if args.mode == "faq":
+        from .faq_match import DEFAULT_TSV, match_faq
+
+        faq_tsv = Path(args.faq_tsv) if args.faq_tsv else DEFAULT_TSV
+        match = match_faq(args.question, tsv=faq_tsv, threshold=args.faq_threshold)
+        if match is not None:
+            print(match.answer)
+            print("\nSources:")
+            print(f"- {match.source}")
+            return 0
+
+        # No deterministic hit: fall back to RAG over the OpenFOAM KB
+        # when the caller did not point --kb elsewhere.
+        kb_dir = Path(args.kb)
+        if args.kb == "examples/kb" and (Path("examples/kb/openfoam").is_dir()):
+            kb_dir = Path("examples/kb/openfoam")
+        cfg = LLMConfig(provider=args.provider, model=args.model)
+        llm = build_llm(cfg)
+        from .rag import run_rag
+
+        res = run_rag(
+            args.question,
+            llm,
+            kb_dir=kb_dir,
+            index_dir=Path(args.index_dir),
+            top_k=args.top_k,
+            reindex=args.reindex,
+        )
+        print(res.answer)
+        if res.sources:
+            print("\nSources:")
+            for src in res.sources:
+                print(f"- {src}")
+        return 0
 
     cfg = LLMConfig(provider=args.provider, model=args.model)
     llm = build_llm(cfg)
