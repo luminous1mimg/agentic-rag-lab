@@ -28,7 +28,7 @@ def main() -> int:
     # Step2: RAG args
     parser.add_argument("--mode", choices=["chat", "rag", "graph", "faq"], default="chat")
     parser.add_argument("--faq-tsv", default=None, help="FAQ TSV file for --mode faq (default: package faq_data/faq.tsv)")
-    parser.add_argument("--faq-threshold", type=float, default=0.6, help="difflib cutoff for --mode faq")
+    parser.add_argument("--faq-threshold", type=float, default=0.7, help="difflib cutoff for --mode faq")
     parser.add_argument("--kb", default="examples/kb")
     parser.add_argument("--index-dir", default="data/index_lexical")
     parser.add_argument("--reindex", action="store_true")
